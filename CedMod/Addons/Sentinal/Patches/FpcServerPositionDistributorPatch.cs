@@ -294,6 +294,14 @@ namespace CedMod.Addons.Sentinal.Patches
                         toSend = hub.roleManager.CurrentRole.RoleTypeId;
                 }
                 
+                FpcSyncData data = GetNewSyncData(receiver, hub, fpc.FpcModule, invisible, nearPositioning);
+                if (!invisible)
+                {
+                    FpcServerPositionDistributor._bufferPlayerIDs[count] = hub.PlayerId;
+                    FpcServerPositionDistributor._bufferSyncData[count] = data;
+                    count++;
+                }
+                // tayjay Jan 1 2026: Moved RoleSyncEvent to after buffer write to match base game location
                 NetworkWriterPooled networkWriterPooled = NetworkWriterPool.Get();
                 RoleTypeId? eventResult = FpcServerPositionDistributor._roleSyncEvent?.Invoke(hub, receiver, toSend, (NetworkWriter)networkWriterPooled);
                 if (eventResult.HasValue)
@@ -304,13 +312,6 @@ namespace CedMod.Addons.Sentinal.Patches
                     FpcServerPositionDistributor.SendRole(receiver, hub, toSend, networkWriterPooled);
                 }
                 NetworkWriterPool.Return(networkWriterPooled);
-                FpcSyncData data = GetNewSyncData(receiver, hub, fpc.FpcModule, invisible, nearPositioning);
-                if (!invisible)
-                {
-                    FpcServerPositionDistributor._bufferPlayerIDs[count] = hub.PlayerId;
-                    FpcServerPositionDistributor._bufferSyncData[count] = data;
-                    count++;
-                }
             }
 
             writer.WriteUShort(count);
